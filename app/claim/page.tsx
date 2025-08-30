@@ -40,48 +40,48 @@ export default function ClaimLandingPage() {
 
             {/* Back Button */}
             <Link href="/" passHref>
-                <Button className="fixed top-6 left-6 z-20 glass-card h-12 px-4 bg-white/5 border border-white/10 text-white hover:bg-white/10 backdrop-blur-sm transition-all">
-                    <ArrowLeft className="h-5 w-5 mr-2" />
+                <Button className="fixed top-4 sm:top-6 left-4 sm:left-6 z-20 glass-card h-10 sm:h-12 px-3 sm:px-4 bg-white/5 border border-white/10 text-white hover:bg-white/10 backdrop-blur-sm transition-all text-sm sm:text-base">
+                    <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
                     Back
                 </Button>
             </Link>
 
-            <main className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-16">
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl md:text-5xl font-bold font-sora text-white mb-4">
+            <main className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 md:px-8 lg:px-12 py-8 sm:py-12 md:py-16 lg:py-20">
+                <div className="text-center mb-8 sm:mb-12 px-4">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-sora text-white mb-4 sm:mb-6">
                         Claim Your <span className="text-gray-300">Funds</span>
                     </h1>
-                    <p className="font-ibm-plex-mono text-white text-lg max-w-md mx-auto">
+                    <p className="font-ibm-plex-mono text-white text-base sm:text-lg md:text-xl max-w-md sm:max-w-lg mx-auto">
                         Enter your claim code to receive your payment
                     </p>
                 </div>
                 
-                <div className="glass-card w-full max-w-md p-8">
-                    <div className="flex justify-center mb-6">
-                        <div className="w-16 h-16 bg-white/10 border border-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                            <Gift className="w-8 h-8 text-white" />
+                <div className="glass-card w-full max-w-sm sm:max-w-md md:max-w-lg p-6 sm:p-8 mx-4">
+                    <div className="flex justify-center mb-4 sm:mb-6">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/10 border border-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                            <Gift className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                         </div>
                     </div>
                     
-                    <div className="space-y-6 text-center">
+                    <div className="space-y-4 sm:space-y-6 text-center">
                         <div>
-                            <h2 className="text-2xl font-bold font-sora text-white mb-2">Claim Your Funds</h2>
-                            <p className="font-ibm-plex-mono text-white/70 text-sm">
+                            <h2 className="text-xl sm:text-2xl font-bold font-sora text-white mb-2">Claim Your Funds</h2>
+                            <p className="font-ibm-plex-mono text-white/70 text-xs sm:text-sm">
                                 Enter the code you received to claim your payment.
                             </p>
                         </div>
                         
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                             <Input 
                                 placeholder="Enter your claim code"
                                 value={claimCode}
                                 onChange={(e) => setClaimCode(e.target.value)}
-                                className="input-field h-14 text-center text-lg font-ibm-plex-mono placeholder:text-white/40"
+                                className="input-field h-12 sm:h-14 text-center text-base sm:text-lg font-ibm-plex-mono placeholder:text-white/40"
                             />
                             <Button
                                 onClick={handleClaim}
                                 disabled={!claimCode.trim()}
-                                className="button-primary w-full h-14 text-lg font-bold"
+                                className="button-primary w-full h-12 sm:h-14 text-base sm:text-lg font-bold"
                             >
                                 Claim Funds
                             </Button>

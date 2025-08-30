@@ -183,6 +183,48 @@
   color: #fff;
 }
 
+/* Metallic Gold Connect Button */
+.button-connect {
+  font-family: var(--font-sora), sans-serif;
+  font-weight: 600;
+  color: #000;
+  padding: 14px 24px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, 
+    #FFD700 0%, 
+    #FFA500 25%, 
+    #FFD700 50%, 
+    #FFA500 75%, 
+    #FFD700 100%);
+  background-size: 200% 200%;
+  box-shadow: 
+    0 4px 16px rgba(255, 215, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  border: none;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+  animation: metallicShine 3s ease-in-out infinite;
+}
+
+.button-connect:hover {
+  box-shadow: 
+    0 6px 24px rgba(255, 215, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  animation: metallicShine 1.5s ease-in-out infinite;
+}
+
+@keyframes metallicShine {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 /* Input styles */
 .input-field {
   width: 100%;
