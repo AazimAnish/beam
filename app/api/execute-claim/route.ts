@@ -65,14 +65,12 @@ export async function POST(request: Request) {
       .eq('claim_hash', claimHash);
 
     if (updateError) {
-        console.error("Failed to update transfer status:", updateError)
         // If this fails, we need manual intervention. The transfer happened.
     }
 
     return NextResponse.json({ success: true, txHash });
 
   } catch (error) {
-    console.error('Failed to execute claim:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return NextResponse.json({ success: false, message: errorMessage }, { status: 500 });
   }

@@ -44,7 +44,6 @@ export async function POST(request: Request) {
     ]);
 
   if (error) {
-    console.error('Supabase error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
   
@@ -53,14 +52,12 @@ export async function POST(request: Request) {
     try {
       const { subject, message } = generateClaimEmailContent(amount, claim_link);
       await sendEmail(recipientEmail, subject, message);
-      console.log('Email sent successfully');
       return NextResponse.json({ 
         success: true, 
         claimHash: claim_hash,
         notification: 'Email sent successfully'
       });
-    } catch (emailError) {
-      console.error('Failed to send email:', emailError);
+    } catch {
       // Even if email fails, the transfer is created. Return success with warning.
       return NextResponse.json({ 
         success: true, 

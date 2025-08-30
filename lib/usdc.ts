@@ -80,7 +80,6 @@ export async function getUsdcBalance(address: string): Promise<string> {
     // USDC a 6 décimales sur Avalanche Fuji
     return formatUnits(balance as bigint, 6)
   } catch (error) {
-    console.error('Error fetching USDC balance:', error)
     throw error
   }
 }
@@ -107,7 +106,6 @@ export async function sendUsdc(
     
     return txHash
   } catch (error) {
-    console.error('Error sending USDC:', error)
     throw error
   }
 }
@@ -122,7 +120,6 @@ export async function waitForTransaction(txHash: string) {
     
     return receipt
   } catch (error) {
-    console.error('Error waiting for transaction:', error)
     throw error
   }
 }

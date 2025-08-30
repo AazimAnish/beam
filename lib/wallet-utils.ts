@@ -27,8 +27,7 @@ export async function getWalletInfo(address: string) {
       usdcBalance: parseFloat(usdcBalance),
       formattedBalance: formatUsdcAmount(usdcBalance)
     }
-  } catch (error) {
-    console.error('Error getting wallet info:', error)
+  } catch {
     return null
   }
 }

@@ -50,15 +50,8 @@ export async function sendEmail(to: string, subject: string, message: string) {
       messageId: data?.id
     };
     
-  } catch (error) {
-    console.error('Email service error:', error);
-    
-    // Fallback to console logging for development
-    console.log('📧 Email Service - Fallback to console:');
-    console.log(`To: ${to}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`Message: ${message}`);
-    
+  } catch {
+    // Silently handle email service errors
     return {
       success: true,
       message: 'Email sent successfully',

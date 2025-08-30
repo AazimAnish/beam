@@ -50,7 +50,6 @@ export async function sponsorDeposit(privateKey: string, amount: number): Promis
     
     return depositTxHash
   } catch (error) {
-    console.error('Error depositing sponsor funds:', error)
     throw error
   }
 }
@@ -67,7 +66,6 @@ export async function getSponsorFunds(sponsorAddress: string): Promise<string> {
     
     return formatUnits(balance as bigint, 6)
   } catch (error) {
-    console.error('Error fetching sponsor funds:', error)
     throw error
   }
 }
@@ -100,7 +98,6 @@ export async function getTransferDetails(claimHash: string): Promise<{
       timestamp: result[4] as bigint
     }
   } catch (error) {
-    console.error('Error fetching transfer details:', error)
     throw error
   }
 }
@@ -137,7 +134,6 @@ export async function createTransfer(
     
     return createTxHash
   } catch (error) {
-    console.error('Error creating transfer:', error)
     throw error
   }
 }

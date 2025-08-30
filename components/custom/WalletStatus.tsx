@@ -134,7 +134,9 @@ export function WalletStatus() {
                             <Gem className="h-3 w-3 sm:h-4 sm:w-4" />
                             <span>AVAX</span>
                         </div>
-                        <span className="font-bold text-xs sm:text-sm">{isAvaxBalanceLoading ? '...' : `$${balanceInUsd}`}</span>
+                        <span className="font-bold text-xs sm:text-sm">
+                          {isAvaxBalanceLoading ? '...' : `$${balanceInUsd}`}
+                        </span>
                     </div>
                 </DropdownMenuItem>
            </DropdownMenuGroup>
