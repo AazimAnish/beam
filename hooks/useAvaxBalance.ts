@@ -16,11 +16,12 @@ const publicClient = createPublicClient({
 export function useAvaxBalanceInUsd(address: `0x${string}` | undefined) {
   const [avaxPrice, setAvaxPrice] = useState<number | null>(null);
   const [balanceInUsd, setBalanceInUsd] = useState<string>('0.00');
+  const [avaxBalance, setAvaxBalance] = useState<string>('0.000');
   const [isLoading, setIsLoading] = useState(true);
   const { chain } = useAccount();
 
-  // Only fetch balance if we're on the correct network
-  const isCorrectNetwork = chain?.id === avalancheFuji.id;
+  // Always show balance for Fuji testnet, regardless of current chain
+  const shouldFetchBalance = !!address;
 
 
 
@@ -44,8 +45,9 @@ export function useAvaxBalanceInUsd(address: `0x${string}` | undefined) {
 
   useEffect(() => {
     async function fetchAvaxBalance() {
-      if (!address || !isCorrectNetwork) {
+      if (!address || !shouldFetchBalance) {
         setBalanceInUsd('0.00');
+        setAvaxBalance('0.000');
         setIsLoading(false);
         return;
       }
@@ -53,35 +55,35 @@ export function useAvaxBalanceInUsd(address: `0x${string}` | undefined) {
       try {
         setIsLoading(true);
         
-        // Get native AVAX balance using viem
+        // Get native AVAX balance using viem on Fuji testnet
         const balance = await getBalance(publicClient, { address });
         
-        const avaxBalance = parseFloat(formatUnits(balance, 18)); // AVAX has 18 decimals
+        const rawAvaxBalance = parseFloat(formatUnits(balance, 18)); // AVAX has 18 decimals
+        const formattedAvaxBalance = rawAvaxBalance.toFixed(3);
+        setAvaxBalance(formattedAvaxBalance);
         
-        if (avaxPrice !== null) {
-          const usdValue = avaxBalance * avaxPrice;
+        if (avaxPrice !== null && avaxPrice > 0) {
+          const usdValue = rawAvaxBalance * avaxPrice;
           setBalanceInUsd(usdValue.toFixed(2));
         } else {
-          // Fallback: show raw balance if price fetch fails
-          setBalanceInUsd(avaxBalance.toFixed(6)); // Show more decimals for raw balance
+          // Show AVAX amount when USD price is not available
+          setBalanceInUsd(formattedAvaxBalance);
         }
       } catch (error) {
         setBalanceInUsd('0.00');
+        setAvaxBalance('0.000');
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchAvaxBalance();
-  }, [address, isCorrectNetwork, avaxPrice]);
+  }, [address, shouldFetchBalance, avaxPrice]);
 
-  // Reset balance if user switches to wrong network
-  useEffect(() => {
-    if (!isCorrectNetwork) {
-      setBalanceInUsd('0.00');
-      setIsLoading(false);
-    }
-  }, [isCorrectNetwork]);
-
-  return { balanceInUsd, isLoading };
+  return { 
+    balanceInUsd, 
+    avaxBalance, 
+    isLoading,
+    hasPrice: avaxPrice !== null && avaxPrice > 0 
+  };
 } 

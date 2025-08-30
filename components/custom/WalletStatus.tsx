@@ -41,7 +41,7 @@ export function WalletStatus() {
 
   const walletAddress = user?.wallet?.address as `0x${string}` | undefined;
 
-  const { balanceInUsd, isLoading: isAvaxBalanceLoading } = useAvaxBalanceInUsd(walletAddress);
+  const { avaxBalance, isLoading: isAvaxBalanceLoading } = useAvaxBalanceInUsd(walletAddress);
   const { formattedBalance: usdcBalance, loading: isUsdcBalanceLoading } = useUsdcBalance(walletAddress);
 
   const avatarSrc = getSocialAvatar(user) || `https://avatar.vercel.sh/${user?.wallet?.address}.png`;
@@ -135,7 +135,7 @@ export function WalletStatus() {
                             <span>AVAX</span>
                         </div>
                         <span className="font-bold text-xs sm:text-sm">
-                          {isAvaxBalanceLoading ? '...' : `$${balanceInUsd}`}
+                          {isAvaxBalanceLoading ? '...' : `${avaxBalance} AVAX`}
                         </span>
                     </div>
                 </DropdownMenuItem>
