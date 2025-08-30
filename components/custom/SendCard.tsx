@@ -20,7 +20,7 @@ type SendStep = 'input' | 'link_generated';
 
 export function SendCard() {
   const { ready, authenticated, user, login } = usePrivy();
-  const { chain, isConnected, address } = useAccount();
+  const { chain, isConnected } = useAccount();
   const { switchChain, isPending: isSwitchingChain } = useSwitchChain();
   
 
@@ -74,7 +74,7 @@ export function SendCard() {
           const chainId = await ethereum.request({ method: 'eth_chainId' });
           const numericChainId = parseInt(chainId, 16);
           return numericChainId;
-        } catch (error) {
+        } catch {
           // Silently handle error
         }
       }
@@ -162,7 +162,7 @@ export function SendCard() {
               }],
             });
             toast.success("Avalanche Fuji network added. Please try again.");
-          } catch (addError) {
+          } catch {
             toast.error("Failed to add Avalanche Fuji network. Please add it manually.");
           }
         }
@@ -428,7 +428,7 @@ export function SendCard() {
                     onClick={async () => {
                       try {
                         await switchChain({ chainId: 43113 });
-                      } catch (error) {
+                      } catch {
                         // Handle error silently
                       }
                     }}
