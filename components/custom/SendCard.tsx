@@ -5,6 +5,8 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useSwitchChain, useAccount, useWriteContract } from "wagmi";
 import { parseUnits } from "viem";
 
+// Window.ethereum is already declared globally
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SharingMethodSelect, type SharingMethod } from "@/components/custom/SharingMethodSelect";
@@ -18,8 +20,10 @@ type SendStep = 'input' | 'link_generated';
 
 export function SendCard() {
   const { ready, authenticated, user, login } = usePrivy();
-  const { chain } = useAccount();
+  const { chain, isConnected, address } = useAccount();
   const { switchChain, isPending: isSwitchingChain } = useSwitchChain();
+  
+
   const { data: hash, writeContract, isPending, isSuccess, error: transactionError } = useWriteContract();
 
   const [email, setEmail] = useState("");
@@ -57,10 +61,113 @@ export function SendCard() {
       toast.error("Please enter a valid email address.");
       return;
     }
-    if (chain?.id !== avalancheFuji.id) {
-      toast.error("Please switch to the Avalanche Fuji testnet to continue.");
-      switchChain({ chainId: avalancheFuji.id });
+
+    
+    // Alternative chain detection using window.ethereum when Wagmi fails
+    const getCurrentChainId = async () => {
+      if (chain?.id) return chain.id;
+      
+      // Fallback: Try to get chainId directly from wallet
+      if (typeof window !== 'undefined' && window.ethereum) {
+        try {
+          const ethereum = window.ethereum as { request: (args: { method: string }) => Promise<string> };
+          const chainId = await ethereum.request({ method: 'eth_chainId' });
+          const numericChainId = parseInt(chainId, 16);
+          return numericChainId;
+        } catch (error) {
+          // Silently handle error
+        }
+      }
+      return null;
+    };
+    
+    const currentChainId = await getCurrentChainId();
+    
+    // Check if wallet is connected but no chain detected
+    if ((isConnected || user?.wallet) && !currentChainId) {
+      toast.error("Detecting network... Please wait and try again.");
       return;
+    }
+    
+    // More robust chain validation for Avalanche Fuji
+    const isValidChain = (() => {
+      if (!currentChainId) {
+        return false;
+      }
+      
+      // Direct ID match
+      if (currentChainId === 43113 || currentChainId === avalancheFuji.id) {
+        return true;
+      }
+      
+      // Name-based matching (case-insensitive) - only if we have chain object
+      if (chain?.name) {
+        const chainName = chain.name.toLowerCase();
+        
+        if (chainName.includes('fuji') || 
+            chainName.includes('avalanche') ||
+            chainName.includes('avax')) {
+          return true;
+        }
+      }
+      
+      // Additional check for common Fuji testnet variations
+      const validChainIds = [43113, 0xa869]; // 43113 in hex is 0xa869
+      const isValid = validChainIds.includes(currentChainId);
+      return isValid;
+    })();
+    
+    if (!isValidChain) {
+      const networkName = chain?.name || 'Unknown';
+      const networkId = currentChainId || 'undefined';
+      toast.error(`Current network: ${networkName} (ID: ${networkId}). Please switch to Avalanche Fuji testnet.`);
+      
+      try {
+        // Try Wagmi first
+        if (switchChain) {
+          await switchChain({ chainId: 43113 });
+        } else {
+          // Fallback to direct wallet request
+          if (typeof window !== 'undefined' && window.ethereum) {
+            const ethereum = window.ethereum as { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> };
+            await ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0xa869' }], // 43113 in hex
+            });
+          }
+        }
+        
+        toast.success("Switched to Avalanche Fuji testnet. Please try again.");
+        return;
+      } catch (error: unknown) {
+        // Handle error silently
+        
+        // If chain doesn't exist, try to add it
+        const errorWithCode = error as { code?: number };
+        if (errorWithCode?.code === 4902 && typeof window !== 'undefined' && window.ethereum) {
+          try {
+            const ethereum = window.ethereum as { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> };
+            await ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: '0xa869',
+                chainName: 'Avalanche Fuji Testnet',
+                nativeCurrency: {
+                  name: 'AVAX',
+                  symbol: 'AVAX',
+                  decimals: 18,
+                },
+                rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
+                blockExplorerUrls: ['https://testnet.snowtrace.io/'],
+              }],
+            });
+            toast.success("Avalanche Fuji network added. Please try again.");
+          } catch (addError) {
+            toast.error("Failed to add Avalanche Fuji network. Please add it manually.");
+          }
+        }
+        return;
+      }
     }
     if (!SPONSOR_WALLET_ADDRESS || SPONSOR_WALLET_ADDRESS.includes('...')) {
       toast.error("Sponsor wallet has not been configured.");
@@ -210,7 +317,7 @@ export function SendCard() {
                 
                 {sharingMethod !== 'email' && (
                   <div className="grid grid-cols-2 gap-4">
-                      <a href={`https://wa.me/?text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer" className="block">
+                      <a key="whatsapp" href={`https://wa.me/?text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer" className="block">
                           <div className="glass-card p-4 text-center hover:bg-white/10 transition-all duration-300 cursor-pointer group">
                             <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-br from-[#25D366] to-[#128C7E] rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30">
                               <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -220,7 +327,7 @@ export function SendCard() {
                             <p className="font-sora text-white text-sm font-semibold">WhatsApp</p>
                           </div>
                       </a>
-                      <a href={`https://t.me/share/url?url=${encodeURIComponent(claimLink)}&text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer" className="block">
+                      <a key="telegram" href={`https://t.me/share/url?url=${encodeURIComponent(claimLink)}&text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer" className="block">
                           <div className="glass-card p-4 text-center hover:bg-white/10 transition-all duration-300 cursor-pointer group">
                             <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-br from-[#0088CC] to-[#229ED9] rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
                               <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -230,7 +337,7 @@ export function SendCard() {
                             <p className="font-sora text-white text-sm font-semibold">Telegram</p>
                           </div>
                       </a>
-                      <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer" className="block">
+                      <a key="twitter" href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer" className="block">
                           <div className="glass-card p-4 text-center hover:bg-white/10 transition-all duration-300 cursor-pointer group">
                             <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-br from-[#1DA1F2] to-[#0d8bd9] rounded-xl flex items-center justify-center shadow-lg shadow-blue-400/30">
                               <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -240,7 +347,7 @@ export function SendCard() {
                             <p className="font-sora text-white text-sm font-semibold">Twitter</p>
                           </div>
                       </a>
-                      <a href={`sms:?body=${encodeURIComponent(shareMessage)}`} className="block">
+                      <a key="sms" href={`sms:?body=${encodeURIComponent(shareMessage)}`} className="block">
                           <div className="glass-card p-4 text-center hover:bg-white/10 transition-all duration-300 cursor-pointer group">
                             <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-br from-[#34C759] to-[#30D158] rounded-xl flex items-center justify-center shadow-lg shadow-green-400/30">
                               <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -276,33 +383,64 @@ export function SendCard() {
       {/* Network Status */}
       {chain && (
         <div className="text-center space-y-3">
-          <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-            chain.id === avalancheFuji.id 
-              ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-              : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-          }`}>
-            {chain.id === avalancheFuji.id ? (
+          {(() => {
+            const isValidChain = (() => {
+              if (!chain) return false;
+              
+              // Direct ID match
+              if (chain.id === 43113 || chain.id === avalancheFuji.id) return true;
+              
+              // Name-based matching (case-insensitive)
+              const chainName = chain.name?.toLowerCase() || '';
+              if (chainName.includes('fuji') || 
+                  chainName.includes('avalanche') ||
+                  chainName.includes('avax')) {
+                return true;
+              }
+              
+              // Additional check for common Fuji testnet variations
+              const validChainIds = [43113, 0xa869]; // 43113 in hex is 0xa869
+              return validChainIds.includes(chain.id);
+            })();
+            
+            return (
               <>
-                <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                Connected to Avalanche Fuji Testnet
+                <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                  isValidChain 
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                    : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                }`}>
+                  {isValidChain ? (
+                    <>
+                      <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                      Connected to Avalanche Fuji Testnet
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
+                      Wrong Network - Chain ID: {chain.id}
+                    </>
+                  )}
+                </div>
+                
+                {!isValidChain && (
+                  <Button
+                    onClick={async () => {
+                      try {
+                        await switchChain({ chainId: 43113 });
+                      } catch (error) {
+                        // Handle error silently
+                      }
+                    }}
+                    className="button-primary h-10 text-sm font-bold"
+                    disabled={isSwitchingChain}
+                  >
+                    {isSwitchingChain ? 'Switching...' : 'Switch to Fuji Testnet'}
+                  </Button>
+                )}
               </>
-            ) : (
-              <>
-                <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
-                Wrong Network - Please switch to Fuji Testnet
-              </>
-            )}
-          </div>
-          
-          {chain.id !== avalancheFuji.id && (
-            <Button
-              onClick={() => switchChain({ chainId: avalancheFuji.id })}
-              className="button-primary h-10 text-sm font-bold"
-              disabled={isSwitchingChain}
-            >
-              {isSwitchingChain ? 'Switching...' : 'Switch to Fuji Testnet'}
-            </Button>
-          )}
+            );
+          })()}
         </div>
       )}
       

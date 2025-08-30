@@ -41,9 +41,6 @@ export default function SendPage() {
                     <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-sora text-white mb-4 sm:mb-6">
                         Send <span className="text-gray-300">Crypto</span>
                     </h1>
-                    <p className="font-ibm-plex-mono text-white text-base sm:text-lg md:text-xl max-w-md sm:max-w-lg mx-auto">
-                        Transform how you send money. USDC to anyone, anywhere, with just an email address.
-                    </p>
                 </div>
                 
                 <Toaster richColors position="top-center" />

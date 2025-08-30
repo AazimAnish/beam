@@ -6,11 +6,13 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { avalancheFuji } from '@/lib/constants';
 import { getWagmiConfig } from '@/lib/wagmi';
+import { AutoSwitchNetwork } from '@/components/custom/AutoSwitchNetwork';
+import { PrivyWagmiConnector } from '@/components/custom/PrivyWagmiConnector';
 import { useState, useEffect } from 'react';
 
 export const privyConfig: PrivyClientConfig = {
     // Replace this with your Privy config
-    loginMethods: ['wallet', 'email', 'sms'],
+    loginMethods: ['wallet', 'email'],
     appearance: {
         theme: 'dark',
         accentColor: '#4F46E5',
@@ -28,6 +30,9 @@ export const privyConfig: PrivyClientConfig = {
     walletConnectCloudProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
 };
 
+// Get the singleton wagmi config
+const wagmiConfig = getWagmiConfig();
+
 export function Providers({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(() => new QueryClient({
         defaultOptions: {
@@ -38,8 +43,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
             },
         },
     }))
-
-    const [wagmiConfig] = useState(() => getWagmiConfig())
 
     // Handle wallet connection errors
     useEffect(() => {
@@ -70,6 +73,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 reason.includes('WebSocket connection failed') ||
                 reason.includes('WalletConnect') ||
                 reason.includes('wallet') ||
+                reason.includes('eth_requestAccounts already pending') ||
+                reason.includes('Request of type eth_requestAccounts already pending') ||
                 stack.includes('walletconnect') ||
                 stack.includes('wagmi'))) {
                 event.preventDefault();
@@ -96,7 +101,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
             config={privyConfig}
         >
             <QueryClientProvider client={queryClient}>
-                <WagmiProvider config={wagmiConfig} reconnectOnMount={false}>
+                <WagmiProvider config={wagmiConfig}>
+                    <PrivyWagmiConnector />
+                    <AutoSwitchNetwork />
                     {children}
                 </WagmiProvider>
             </QueryClientProvider>

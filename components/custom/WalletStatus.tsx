@@ -12,10 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogIn, LogOut, Copy, Download, DollarSign, Gem } from "lucide-react";
+import { LogIn, LogOut, Copy, Download, DollarSign, Gem, Network } from "lucide-react";
 import { toast } from "sonner";
 import { useAvaxBalanceInUsd } from "@/hooks/useAvaxBalance";
 import { useUsdcBalance } from "@/hooks/useUsdc";
+import { useSwitchChain, useAccount } from "wagmi";
+import { avalancheFuji } from "@/lib/constants";
 import type { User } from "@privy-io/react-auth";
 
 // Helper to get social profile picture
@@ -40,6 +42,8 @@ export function WalletStatus() {
   } = usePrivy();
 
   const walletAddress = user?.wallet?.address as `0x${string}` | undefined;
+  const { chain, isConnected } = useAccount();
+  const { switchChain, isPending: isSwitchingChain } = useSwitchChain();
 
   const { avaxBalance, isLoading: isAvaxBalanceLoading } = useAvaxBalanceInUsd(walletAddress);
   const { formattedBalance: usdcBalance, loading: isUsdcBalanceLoading } = useUsdcBalance(walletAddress);
@@ -51,6 +55,69 @@ export function WalletStatus() {
       navigator.clipboard.writeText(user.wallet.address);
       toast.success("Address copied to clipboard!");
     }
+  };
+
+  const handleExportWallet = async () => {
+    if (!user?.wallet) {
+      toast.error("No wallet found to export");
+      return;
+    }
+    
+    // For embedded wallets, use Privy's export function
+    try {
+      if (typeof exportWallet !== 'function') {
+        toast.error("Export wallet functionality is not available");
+        return;
+      }
+      
+      toast.loading("Preparing wallet export...");
+      await exportWallet();
+      toast.dismiss();
+      toast.success("Wallet export completed! Check your downloads.");
+    } catch (error) {
+      toast.dismiss();
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Export failed: ${errorMessage}`);
+    }
+  };
+
+  // Check if wallet can be exported (only embedded wallets)
+  const canExportWallet = () => {
+    if (!user?.wallet) return false;
+    const walletType = user.wallet.walletClientType || user.wallet.connectorType;
+    // Only allow export for embedded wallets (not injected/external wallets)
+    return walletType !== 'core' && walletType !== 'injected' && walletType !== 'metamask' && walletType !== 'wallet_connect' && walletType !== 'coinbase_wallet';
+  };
+
+  const handleSwitchToFuji = async () => {
+    try {
+      if (isSwitchingChain) {
+        return;
+      }
+      
+      if (!isConnected) {
+        toast.error("Please connect your wallet first");
+        return;
+      }
+      
+      toast.loading("Switching to Avalanche Fuji testnet...");
+      await switchChain({ chainId: 43113 });
+      
+      toast.dismiss();
+      toast.success("Successfully switched to Avalanche Fuji testnet!");
+    } catch (error) {
+      toast.dismiss();
+      const errorMessage = error instanceof Error ? error.message : "Failed to switch network";
+      toast.error(`Switch failed: ${errorMessage}`);
+    }
+  };
+
+  const isOnFujiNetwork = () => {
+    if (!chain) return false;
+    return chain.id === 43113 || 
+           chain.id === avalancheFuji.id || 
+           chain.name?.toLowerCase().includes('fuji') ||
+           chain.name?.toLowerCase().includes('avalanche');
   };
 
   if (!ready) {
@@ -146,10 +213,20 @@ export function WalletStatus() {
               <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               <span className="text-xs sm:text-sm">Copy Address</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={exportWallet}>
-              <Download className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="text-xs sm:text-sm">Export Wallet</span>
-            </DropdownMenuItem>
+            {canExportWallet() && (
+              <DropdownMenuItem onClick={handleExportWallet}>
+                <Download className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Export Wallet</span>
+              </DropdownMenuItem>
+            )}
+            {!isOnFujiNetwork() && (
+              <DropdownMenuItem onClick={handleSwitchToFuji} disabled={isSwitchingChain}>
+                <Network className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">
+                  {isSwitchingChain ? 'Switching...' : 'Switch to Fuji Testnet'}
+                </span>
+              </DropdownMenuItem>
+            )}
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={logout}>
