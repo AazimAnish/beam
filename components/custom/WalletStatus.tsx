@@ -55,8 +55,8 @@ export function WalletStatus() {
 
   if (!ready) {
     return (
-      <div className="fixed top-4 left-4 z-50">
-        <Button disabled className="h-12 rounded-full bg-zinc-900 text-white">
+      <div className="wallet-card">
+        <Button disabled className="h-12 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/30">
           Loading...
         </Button>
       </div>
@@ -65,10 +65,10 @@ export function WalletStatus() {
 
   if (!authenticated) {
     return (
-      <div className="fixed top-4 left-4 z-50">
+      <div className="wallet-card">
         <Button
           onClick={login}
-          className="h-12 rounded-full bg-black text-white hover:bg-zinc-800 text-md font-bold"
+          className="button-primary h-12 rounded-full text-md font-bold"
         >
           <LogIn className="mr-2 h-5 w-5" />
           Connect
@@ -81,12 +81,12 @@ export function WalletStatus() {
   if (!user) return null;
 
   return (
-    <div className="fixed top-4 left-4 z-50">
+    <div className="wallet-card">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="outline"
-            className="h-12 rounded-full bg-white border-2 border-black"
+            variant="ghost"
+            className="h-12 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white hover:text-black transition-all duration-200"
           >
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
@@ -97,7 +97,7 @@ export function WalletStatus() {
               </Avatar>
               <span className="font-mono font-bold">
                 {isUsdcBalanceLoading ? "..." : `$${usdcBalance} `}
-                <span className="text-xs text-zinc-500 font-mono">
+                <span className="wallet-balance">
                   {"USDC"}
                 </span>
               </span>
@@ -106,12 +106,12 @@ export function WalletStatus() {
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="start"
-          className="border-2 border-black w-64 shadow-[4px_4px_0px_#000]"
+          className="glass-card w-64 border border-white/20"
         >
           <DropdownMenuLabel>
             <div className="flex flex-col">
-              <span>My Wallet</span>
-              <span className="text-xs text-zinc-500 font-mono">
+              <span className="text-white">My Wallet</span>
+              <span className="wallet-address">
                 {user.wallet?.address.slice(0, 6)}...
                 {user.wallet?.address.slice(-4)}
               </span>

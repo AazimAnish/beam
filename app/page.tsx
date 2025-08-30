@@ -1,65 +1,122 @@
 "use client";
 
-import { usePrivy } from "@privy-io/react-auth";
-import { useRouter } from "next/navigation";
-import { Hero } from "@/components/Hero";
-import { Toaster } from "sonner";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import Image from "next/image";
+import { Send, Gift, Zap, Clock, Share2 } from "lucide-react";
 import Link from "next/link";
+import GradientBlinds from "@/components/GradientBlinds";
+import { WalletStatus } from "@/components/custom/WalletStatus";
+import BlurText from "@/components/ui/blur-text";
 
 export default function Home() {
-  const { ready, authenticated, login } = usePrivy();
-  const router = useRouter();
-
-  const handleActionClick = () => {
-    if (authenticated) {
-      router.push("/send");
-    } else {
-      login();
-    }
-  };
-
   return (
-    <div className="flex flex-col md:flex-row min-h-screen text-black">
-      <div className="relative w-full md:w-1/2 bg-gradient-to-br from-blue-400 to-purple-300 flex items-start justify-center p-8 pt-16 overflow-hidden">
-        <Image
-          src="/logo.svg"
-          alt="Beam Logo"
-          width={200}
-          height={200}
-          className="z-10"
-        />
-        <Image
-          src="/illu.svg"
-          alt="Illustration"
-          layout="fill"
-          objectFit="cover"
-          className="absolute bottom-0 left-0 w-full h-auto"
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#0A0B0F]">
+      {/* GradientBlinds Background */}
+      <div className="fixed inset-0 z-0 transition-all duration-300 hover:opacity-80">
+        <GradientBlinds
+          gradientColors={['#FF6B35', '#F7931E', '#FFD700']}
+          angle={45}
+          noise={0.25}
+          blindCount={15}
+          blindMinWidth={60}
+          spotlightRadius={0.6}
+          spotlightSoftness={1.2}
+          spotlightOpacity={0.9}
+          mouseDampening={0.08}
+          distortAmount={5}
+          shineDirection="left"
+          mixBlendMode="screen"
         />
       </div>
-      <main className="w-full md:w-1/2 bg-yellow-200 flex flex-col justify-center p-8 md:p-16">
-        <Toaster richColors />
-        <Hero />
-        <div className="mt-8">
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-14 px-8 text-lg font-bold rounded-full border-2 border-black bg-transparent hover:bg-black hover:text-white shadow-[8px_8px_0px_#000] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
-            onClick={handleActionClick}
-            disabled={!ready}
-          > 
-             {"Send Crypto Now"}
-              <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-          <Link href="/claim" passHref>
-            <p className="mt-4 text-sm font-bold text-zinc-600 hover:underline">
-              I have a claim link
+
+      {/* Wallet Status - Top Left */}
+      <WalletStatus />
+
+      {/* Content Overlay */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-16">
+        <div className="max-w-4xl mx-auto text-center space-y-16">
+          {/* Hero Section */}
+          <div className="space-y-8">
+            
+            <div className="mb-8">
+              <BlurText 
+                text="Beam It, Claim It." 
+                className="text-5xl md:text-7xl font-bold font-sora text-white mb-2"
+                duration={1.2}
+              />
+            </div>
+            <p className="text-xl md:text-2xl font-ibm-plex-mono text-white/90 max-w-3xl mx-auto leading-relaxed">
+              Send USDC to anyone with just their email. Recipients claim funds instantly via email, WhatsApp, Twitter, or any social platform.
             </p>
-          </Link>
+          </div>
+
+          {/* Action Cards */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+            {/* Send Crypto Card */}
+            <Link href="/send" className="block">
+              <div className="action-card group">
+                <div className="space-y-6">
+                  <div className="w-20 h-20 mx-auto rounded-3xl flex items-center justify-center group-hover:scale-110 transition-all duration-300 bg-white/10 border border-white/20 backdrop-blur-sm">
+                    <Send className="w-10 h-10 text-golden-solid drop-shadow-lg" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-sora font-bold text-2xl text-white">
+                      Send Crypto Now
+                    </h3>
+                    <p className="font-ibm-plex-mono text-white/70 text-sm">
+                      Send USDC to anyone, anywhere
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Claim Link Card */}
+            <Link href="/claim" className="block">
+              <div className="action-card group">
+                <div className="space-y-6">
+                  <div className="w-20 h-20 mx-auto rounded-3xl flex items-center justify-center group-hover:scale-110 transition-all duration-300 bg-white/10 border border-white/20 backdrop-blur-sm">
+                    <Gift className="w-10 h-10 text-golden-solid drop-shadow-lg" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-sora font-bold text-2xl text-white">
+                      I have a claim link
+                    </h3>
+                    <p className="font-ibm-plex-mono text-white/70 text-sm">
+                      Claim your crypto payment
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          {/* Features */}
+          <div className="glass-card max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div className="space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 bg-white/10 border border-white/20 backdrop-blur-sm">
+                  <Zap className="w-8 h-8 text-golden-solid drop-shadow-lg" />
+                </div>
+                <div className="text-golden-solid font-ibm-plex-mono font-bold text-lg">Sponsored Gas</div>
+                <div className="font-sora text-white/70 text-sm">Sender sponsors receiver&apos;s gas fees</div>
+              </div>
+              <div className="space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 bg-white/10 border border-white/20 backdrop-blur-sm">
+                  <Clock className="w-8 h-8 text-golden-solid drop-shadow-lg" />
+                </div>
+                <div className="text-golden-solid font-ibm-plex-mono font-bold text-lg">Instant Claims</div>
+                <div className="font-sora text-white/70 text-sm">Recipients get funds immediately</div>
+              </div>
+              <div className="space-y-4">
+                <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 bg-white/10 border border-white/20 backdrop-blur-sm">
+                  <Share2 className="w-8 h-8 text-golden-solid drop-shadow-lg" />
+                </div>
+                <div className="text-golden-solid font-ibm-plex-mono font-bold text-lg">Share Anywhere</div>
+                <div className="font-sora text-white/70 text-sm">Email, WhatsApp, Twitter, etc.</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

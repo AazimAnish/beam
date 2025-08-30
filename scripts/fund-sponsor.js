@@ -22,11 +22,11 @@ async function main() {
   
   // Check USDC balance
   const balance = await usdc.balanceOf(deployer.address);
-  console.log("USDC Balance:", ethers.utils.formatUnits(balance, 6), "USDC");
+  console.log("USDC Balance:", ethers.formatUnits(balance, 6), "USDC");
   
-  const amountToDeposit = ethers.utils.parseUnits(AMOUNT_TO_DEPOSIT, 6);
+  const amountToDeposit = ethers.parseUnits(AMOUNT_TO_DEPOSIT, 6);
   
-  if (balance.lt(amountToDeposit)) {
+  if (balance < amountToDeposit) {
     console.log("❌ Insufficient USDC balance to deposit");
     console.log("Need to get some USDC on Avalanche Fuji testnet first");
     console.log("You can use the Avalanche Fuji faucet or bridge tokens");
@@ -45,7 +45,7 @@ async function main() {
   
   // Check sponsor funds
   const sponsorFunds = await beam.sponsorFunds(deployer.address);
-  console.log("Sponsor Funds Balance:", ethers.utils.formatUnits(sponsorFunds, 6), "USDC");
+  console.log("Sponsor Funds Balance:", ethers.formatUnits(sponsorFunds, 6), "USDC");
   
   console.log("🎉 Sponsor wallet funded successfully!");
 }

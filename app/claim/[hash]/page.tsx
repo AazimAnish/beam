@@ -4,12 +4,12 @@ import { useState, useEffect, use } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Toaster, toast } from 'sonner';
-import { ArrowRight, CheckCircle2, Gift, Home, CreditCard } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Gift, ArrowLeft, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import Confetti from 'react-confetti';
 import { VirtualCard } from '@/components/custom/VirtualCard';
+import GradientBlinds from '@/components/GradientBlinds';
 
 
 type Transfer = {
@@ -128,51 +128,62 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
     }
   };
 
-  // Direct claim - no OTP needed in Beam
-  
   const renderInitialStep = () => (
-    <>
-      <CardHeader className="items-center text-center pb-0">
-        <Gift className="w-20 h-20 mb-4 text-blue-500 mx-auto" />
-        <CardTitle className="text-3xl font-black uppercase">You&apos;ve Received a Payment!</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-4 pt-2">
-        <div className="text-center">
-            <p className="text-7xl font-black text-black">
-                ${transfer?.amount}
-            </p>
-            <p className="text-2xl font-bold text-zinc-500">USDC</p>
+    <div className="glass-card max-w-md mx-auto space-y-8">
+      <div className="text-center space-y-6">
+        <div className="flex justify-center">
+          <div className="w-20 h-20 bg-white/10 border border-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center">
+            <Gift className="w-10 h-10 text-white" />
+          </div>
         </div>
-        <div className="space-y-3">
-            <Button 
-                onClick={handleClaim} 
-                disabled={isProcessing}
-                className="w-full h-14 text-lg font-bold rounded-full bg-black text-white hover:bg-zinc-800 shadow-[4px_4px_0px_#999] active:shadow-none active:translate-x-0.5 active:translate-y-0.5 transition-all"
-              >
-                {isProcessing ? 'Processing...' : `Claim to Wallet`}
-                <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button 
-                onClick={handleGenerateCard} 
-                disabled={isProcessing}
-                variant="outline"
-                className="w-full h-14 text-lg font-bold rounded-full border-2 border-black bg-white hover:bg-zinc-100"
-              >
-                <CreditCard className="mr-2 h-5 w-5" />
-                Generate a Card
-            </Button>
+        
+        <div>
+          <h1 className="text-3xl font-bold font-sora text-white mb-2">You&apos;ve Received a Payment!</h1>
+          <p className="font-ibm-plex-mono text-white/80 text-sm">From: {transfer?.recipient_email}</p>
         </div>
-      </CardContent>
-    </>
+
+        <div className="text-center py-6">
+          <span className="text-7xl font-bold text-white font-ibm-plex-mono">${transfer?.amount}</span>
+          <p className="text-2xl font-bold text-gray-400 font-sora mt-2">USDC</p>
+        </div>
+
+        <div className="space-y-4">
+          <Button 
+            onClick={handleClaim} 
+            disabled={isProcessing}
+            className="button-primary w-full h-14 text-lg font-bold"
+          >
+            {isProcessing ? 'Processing...' : `Claim to Wallet`}
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+          
+          <Button 
+            onClick={handleGenerateCard} 
+            disabled={isProcessing}
+            className="button-secondary w-full h-14 text-lg font-bold"
+          >
+            <CreditCard className="mr-2 h-5 w-5" />
+            Generate a Card
+          </Button>
+        </div>
+      </div>
+    </div>
   );
   
 
   const renderClaimedStep = () => (
-     <CardHeader className="items-center text-center">
-        <CheckCircle2 className="w-20 h-20 mb-4 text-green-500 mx-auto" />
-        <CardTitle className="text-3xl font-black uppercase text-green-500">Funds Claimed!</CardTitle>
-        <CardDescription>These funds have been successfully transferred to your wallet.</CardDescription>
-      </CardHeader>
+    <div className="glass-card max-w-md mx-auto text-center space-y-6">
+      <div className="flex justify-center">
+        <div className="w-20 h-20 bg-white/10 border border-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center">
+          <CheckCircle2 className="w-10 h-10 text-green-400" />
+        </div>
+      </div>
+      
+      <div>
+        <h1 className="text-3xl font-bold font-sora text-green-400 mb-2">Funds Claimed!</h1>
+        <p className="font-ibm-plex-mono text-white/80">These funds have been successfully transferred to your wallet.</p>
+      </div>
+    </div>
   );
 
   const renderCardStep = () => (
@@ -180,8 +191,8 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
   )
 
   const renderContent = () => {
-    if (loading) return <div className="p-6 text-center">Loading transfer details...</div>;
-    if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
+    if (loading) return <div className="glass-card max-w-md mx-auto p-6 text-center font-sora text-white">Loading transfer details...</div>;
+    if (error) return <div className="glass-card max-w-md mx-auto p-6 text-center text-red-400 font-sora">{error}</div>;
     
     switch(step) {
       case 'initial': return renderInitialStep();
@@ -192,19 +203,40 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
   };
 
   return (
-    <div className="min-h-screen bg-yellow-100 dark:bg-yellow-900/50 text-black">
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#0A0B0F]">
+      {/* GradientBlinds Background */}
+      <div className="fixed inset-0 z-0 transition-all duration-700 hover:opacity-75">
+        <GradientBlinds
+          gradientColors={['#10B981', '#059669', '#047857']}
+          angle={120}
+          noise={0.28}
+          blindCount={10}
+          blindMinWidth={85}
+          spotlightRadius={0.65}
+          spotlightSoftness={1.3}
+          spotlightOpacity={0.8}
+          mouseDampening={0.12}
+          distortAmount={6}
+          shineDirection="left"
+          mixBlendMode="screen"
+        />
+      </div>
+
       {showConfetti && <Confetti recycle={false} />}
+      
+      {/* Back Button */}
       <Link href="/" passHref>
-        <Button variant="outline" className="fixed top-4 right-4 h-12 rounded-full bg-white border-2 border-black">
-            <Home className="h-5 w-5" />
+        <Button className="fixed top-6 left-6 z-20 glass-card h-12 px-4 bg-white/5 border border-white/10 text-white hover:bg-white/10 backdrop-blur-sm transition-all">
+          <ArrowLeft className="h-5 w-5 mr-2" />
+          Back
         </Button>
       </Link>
-      <Toaster richColors />
-      <main className="flex items-center justify-center min-h-screen px-4">
-        <Card className="w-full max-w-md border-2 border-black bg-white text-center shadow-[8px_8px_0px_#000]">
-          {renderContent()}
-        </Card>
+      
+      <Toaster richColors position="top-center" />
+      
+      <main className="relative z-10 flex items-center justify-center min-h-screen px-6 py-16">
+        {renderContent()}
       </main>
     </div>
   );
-} 
+}

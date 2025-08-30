@@ -27,16 +27,23 @@ const USDC_ABI = [
 // Avalanche Fuji testnet RPC
 const RPC_URL = 'https://api.avax-test.network/ext/bc/C/rpc';
 
+// Configuration - UPDATE THESE VALUES
+const AMOUNT_USDC = '10'; // Amount of USDC to send
+const RECIPIENT_ADDRESS = process.env.RECIPIENT_ADDRESS || '0x...'; // Recipient's wallet address
+
 async function fundWallet() {
   // Configuration - UPDATE THESE VALUES
-  const FUNDER_PRIVATE_KEY = process.env.FUNDER_PRIVATE_KEY; // Private key of wallet with USDC
-  const RECIPIENT_ADDRESS = process.env.RECIPIENT_ADDRESS; // Address to fund
-  const AMOUNT_USDC = process.env.AMOUNT_USDC || '100'; // Amount in USDC
+  const FUNDER_PRIVATE_KEY = process.env.FUNDER_PRIVATE_KEY;
+  
+  if (!FUNDER_PRIVATE_KEY) {
+    console.error('Please set FUNDER_PRIVATE_KEY environment variable');
+    console.error('Example: FUNDER_PRIVATE_KEY=0x... node scripts/fund-wallet.js');
+    return;
+  }
 
-  if (!FUNDER_PRIVATE_KEY || !RECIPIENT_ADDRESS) {
-    console.error('Please set FUNDER_PRIVATE_KEY and RECIPIENT_ADDRESS environment variables');
-    console.error('Example:');
-    console.error('FUNDER_PRIVATE_KEY=0x... RECIPIENT_ADDRESS=0x... AMOUNT_USDC=100 node scripts/fund-wallet.js');
+  if (RECIPIENT_ADDRESS === '0x...') {
+    console.error('Please set RECIPIENT_ADDRESS environment variable or update the script');
+    console.error('Example: RECIPIENT_ADDRESS=0x... node scripts/fund-wallet.js');
     return;
   }
 

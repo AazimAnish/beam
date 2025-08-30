@@ -6,7 +6,7 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { avalancheFuji } from '@/lib/constants';
 import { getWagmiConfig } from '@/lib/wagmi';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const privyConfig: PrivyClientConfig = {
     // Replace this with your Privy config
@@ -24,17 +24,34 @@ export const privyConfig: PrivyClientConfig = {
     supportedChains: [avalancheFuji]
 };
 
-
 export function Providers({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(() => new QueryClient({
         defaultOptions: {
             queries: {
                 staleTime: 60 * 1000,
+                retry: 1,
+                retryDelay: 1000,
             },
         },
     }))
 
     const [wagmiConfig] = useState(() => getWagmiConfig())
+
+    // Handle wallet connection errors
+    useEffect(() => {
+        const handleError = (error: ErrorEvent) => {
+            // Filter out WalletConnect connection errors to prevent console spam
+            if (error.message?.includes('Connection interrupted') || 
+                error.message?.includes('walletProvider?.on is not a function')) {
+                console.warn('Wallet connection issue:', error.message);
+                return;
+            }
+            console.error('Unhandled error:', error);
+        };
+
+        window.addEventListener('error', handleError);
+        return () => window.removeEventListener('error', handleError);
+    }, []);
 
     return (
         <PrivyProvider

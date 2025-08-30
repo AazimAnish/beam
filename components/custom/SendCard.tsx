@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
-import { useSendTransaction, useSwitchChain, useAccount } from "wagmi";
+import { useSwitchChain, useAccount, useWriteContract } from "wagmi";
 import { parseUnits } from "viem";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SharingMethodSelect, type SharingMethod } from "@/components/custom/SharingMethodSelect";
 import { USDC_AVALANCHE_ADDRESS, SPONSOR_WALLET_ADDRESS, avalancheFuji } from "@/lib/constants";
+import { erc20Abi } from "@/lib/erc20abi";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Copy, Mail } from "lucide-react";
 
@@ -20,7 +20,7 @@ export function SendCard() {
   const { ready, authenticated, user } = usePrivy();
   const { chain } = useAccount();
   const { switchChain } = useSwitchChain();
-  const { data: hash, sendTransaction, isPending, isSuccess, error: transactionError } = useSendTransaction();
+  const { data: hash, writeContract, isPending, isSuccess, error: transactionError } = useWriteContract();
 
   const [email, setEmail] = useState("");
   const [sharingMethod, setSharingMethod] = useState<SharingMethod>("email");
@@ -69,9 +69,11 @@ export function SendCard() {
 
     const amountInUnits = parseUnits(amount, 6);
     
-    sendTransaction({
-      to: USDC_AVALANCHE_ADDRESS,
-      data: `0xa9059cbb${SPONSOR_WALLET_ADDRESS.substring(2).padStart(64, '0')}${amountInUnits.toString(16).padStart(64, '0')}` as `0x${string}`,
+    writeContract({
+      address: USDC_AVALANCHE_ADDRESS,
+      abi: erc20Abi,
+      functionName: 'transfer',
+      args: [SPONSOR_WALLET_ADDRESS as `0x${string}`, amountInUnits],
     });
   };
 
@@ -125,22 +127,20 @@ export function SendCard() {
   
   if (!ready) {
     return (
-      <Card className="w-full max-w-md mx-auto border-2 border-black bg-white p-8 text-center">
-        <p>Loading Wallet Status...</p>
-      </Card>
+      <div className="glass-card max-w-md mx-auto text-center">
+        <p className="font-sora text-white">Loading Wallet Status...</p>
+      </div>
     );
   }
 
   if (!authenticated || !user?.wallet) {
     return (
-      <Card className="w-full max-w-md mx-auto border-2 border-black bg-white shadow-[8px_8px_0px_#000]">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-black uppercase">Connect Wallet</CardTitle>
-          <CardDescription>
-            Please connect your wallet to send money using the button in the top-left corner.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="glass-card max-w-md mx-auto text-center space-y-4">
+        <h2 className="font-sora text-2xl font-bold text-white">Connect Wallet</h2>
+        <p className="font-ibm-plex-mono text-white/70">
+          Please connect your wallet to send money using the button in the top-left corner.
+        </p>
+      </div>
     );
   }
 
@@ -153,96 +153,159 @@ export function SendCard() {
     const shareMessage = `I've sent you $${amount} on Beam! Claim it here: ${claimLink}`;
     
     return (
-        <Card className="w-full max-w-sm mx-auto border-2 border-black bg-white shadow-[8px_8px_0px_#000]">
-            <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-black uppercase">
+        <div className="glass-card max-w-lg mx-auto space-y-6">
+            <div className="text-center space-y-3">
+                <h2 className="font-sora text-2xl font-bold text-white">
                   {sharingMethod === 'email' ? 'Email Sent!' : 'Share this Link'}
-                </CardTitle>
-                <CardDescription>
+                </h2>
+                <p className="font-ibm-plex-mono text-white/70">
                     {sharingMethod === 'email' 
                       ? `We sent ${email} a secure link to claim $${amount}.`
                       : `Your recipient can claim $${amount} using the link below.`
                     }
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 p-4">
-                <div className="flex items-center space-x-2 rounded-xl border-2 border-dashed border-black p-3 bg-zinc-100">
-                    <input type="text" readOnly value={claimLink} className="w-full bg-transparent outline-none font-mono text-sm" />
-                    <Button variant="ghost" size="icon" onClick={copyLink}>
-                        <Copy className="h-5 w-5" />
+                </p>
+            </div>
+            
+            <div className="space-y-4">
+                <div className="flex items-center space-x-3 rounded-xl border border-white/20 bg-white/5 p-4 backdrop-blur-sm">
+                    <input 
+                        type="text" 
+                        readOnly 
+                        value={claimLink} 
+                        className="flex-1 bg-transparent outline-none font-ibm-plex-mono text-sm text-white/90" 
+                    />
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={copyLink}
+                        className="icon-button"
+                    >
+                        <Copy className="h-4 w-4" />
                     </Button>
                 </div>
                 
                 {sharingMethod !== 'email' && (
-                  <div className="grid grid-cols-3 gap-2">
-                      <a href={`https://wa.me/?text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer">
-                          <Button variant="outline" className="w-full">WhatsApp</Button>
+                  <div className="grid grid-cols-2 gap-4">
+                      <a href={`https://wa.me/?text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer" className="block">
+                          <div className="glass-card p-4 text-center hover:bg-white/10 transition-all duration-300 cursor-pointer group">
+                            <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-br from-[#25D366] to-[#128C7E] rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30">
+                              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                              </svg>
+                            </div>
+                            <p className="font-sora text-white text-sm font-semibold">WhatsApp</p>
+                          </div>
                       </a>
-                      <a href={`https://t.me/share/url?url=${encodeURIComponent(claimLink)}&text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer">
-                          <Button variant="outline" className="w-full">Telegram</Button>
+                      <a href={`https://t.me/share/url?url=${encodeURIComponent(claimLink)}&text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer" className="block">
+                          <div className="glass-card p-4 text-center hover:bg-white/10 transition-all duration-300 cursor-pointer group">
+                            <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-br from-[#0088CC] to-[#229ED9] rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                              </svg>
+                            </div>
+                            <p className="font-sora text-white text-sm font-semibold">Telegram</p>
+                          </div>
                       </a>
-                      <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer">
-                          <Button variant="outline" className="w-full">Twitter</Button>
+                      <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`} target="_blank" rel="noopener noreferrer" className="block">
+                          <div className="glass-card p-4 text-center hover:bg-white/10 transition-all duration-300 cursor-pointer group">
+                            <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-br from-[#1DA1F2] to-[#0d8bd9] rounded-xl flex items-center justify-center shadow-lg shadow-blue-400/30">
+                              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                              </svg>
+                            </div>
+                            <p className="font-sora text-white text-sm font-semibold">Twitter</p>
+                          </div>
+                      </a>
+                      <a href={`sms:?body=${encodeURIComponent(shareMessage)}`} className="block">
+                          <div className="glass-card p-4 text-center hover:bg-white/10 transition-all duration-300 cursor-pointer group">
+                            <div className="w-12 h-12 mx-auto mb-2 bg-gradient-to-br from-[#34C759] to-[#30D158] rounded-xl flex items-center justify-center shadow-lg shadow-green-400/30">
+                              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                              </svg>
+                            </div>
+                            <p className="font-sora text-white text-sm font-semibold">SMS</p>
+                          </div>
                       </a>
                   </div>
                 )}
                 
-                <Button className="w-full h-12 text-lg font-bold" onClick={() => setStep('input')}>Send Another</Button>
-            </CardContent>
-        </Card>
+                <Button 
+                    className="button-primary w-full h-12 text-lg font-bold" 
+                    onClick={() => setStep('input')}
+                >
+                    Send Another
+                </Button>
+            </div>
+        </div>
     )
   }
   
   return (
-    <Card className="w-full max-w-sm mx-auto border-2 border-black bg-white shadow-[8px_8px_0px_#000]">
-      <CardHeader className="text-center pb-0">
-        <CardTitle className="text-2xl font-black uppercase">Send with Beam</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-4 p-4">
-        <div className="text-center py-2">
-            <span className="text-6xl font-black text-black">${amount}</span>
+    <div className="glass-card max-w-lg mx-auto space-y-6">
+      <div className="text-center">
+        <h2 className="font-sora text-2xl font-bold text-white mb-2">Send with Beam</h2>
+      </div>
+      
+      <div className="space-y-6">
+        {/* Amount Display */}
+        <div className="text-center py-4">
+            <span className="text-6xl font-bold text-white font-ibm-plex-mono">${amount}</span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        {/* Number Pad */}
+        <div className="grid grid-cols-3 gap-3">
             {['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0'].map((key) => (
-                <Button key={key} variant="ghost" className="h-14 text-2xl font-bold" onClick={() => handleKeyPress(key)}>
+                <Button 
+                    key={key} 
+                    variant="ghost" 
+                    className="h-14 text-2xl font-bold bg-white/10 hover:bg-white/15 border border-white/20 rounded-xl text-white font-ibm-plex-mono transition-all duration-200 hover:scale-105 active:scale-95"
+                    onClick={() => handleKeyPress(key)}
+                >
                     {key}
                 </Button>
             ))}
-            <Button variant="ghost" className="h-14 text-2xl font-bold" onClick={handleDelete}>
+            <Button 
+                variant="ghost" 
+                className="h-14 text-2xl font-bold bg-white/10 hover:bg-white/15 border border-white/20 rounded-xl text-white transition-all duration-200 hover:scale-105 active:scale-95" 
+                onClick={handleDelete}
+            >
                 <ArrowLeft />
             </Button>
         </div>
 
-        <div className="grid gap-3">
-          <Label className="font-bold uppercase tracking-wider text-zinc-500">To</Label>
-          <div className="flex items-center space-x-2 rounded-xl border-2 border-black p-3 bg-white focus-within:ring-2 focus-within:ring-black focus-within:ring-offset-2 transition-all">
-            <Mail className="h-4 w-4 text-zinc-400" />
-            <Input 
-                type="email"
-                placeholder="recipient@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 font-medium w-full"
-            />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label className="font-sora text-white font-semibold">To</Label>
+            <div className="input-field flex items-center space-x-3">
+              <Mail className="h-4 w-4 text-white/60" />
+              <Input 
+                  type="email"
+                  placeholder="recipient@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 font-ibm-plex-mono text-white placeholder:text-white/40 flex-1"
+              />
+            </div>
           </div>
           
-          <Label className="font-bold uppercase tracking-wider text-zinc-500">Share Via</Label>
-          <SharingMethodSelect 
-            value={sharingMethod}
-            onChange={setSharingMethod}
-            disabled={isPending || isNotifying}
-          />
+          <div className="space-y-2">
+            <Label className="font-sora text-white font-semibold">Share Via</Label>
+            <SharingMethodSelect 
+              value={sharingMethod}
+              onChange={setSharingMethod}
+              disabled={isPending || isNotifying}
+            />
+          </div>
         </div>
 
         <Button
-          className="w-full h-12 text-lg font-bold rounded-full bg-black text-white hover:bg-zinc-800 shadow-[4px_4px_0px_#999] active:shadow-none active:translate-x-0.5 active:translate-y-0.5 transition-all"
+          className="button-primary w-full h-14 text-lg font-bold"
           onClick={handleSubmit}
           disabled={isPending || isNotifying || !email.trim() || parseFloat(amount) <= 0}
         >
           {isPending ? "Sending..." : (isNotifying ? "Notifying..." : `Confirm Payment`)}
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 } 

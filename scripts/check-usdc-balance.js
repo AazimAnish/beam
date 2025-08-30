@@ -28,21 +28,21 @@ async function checkUsdcBalance() {
 
   try {
     // Connect to Avalanche Fuji testnet
-    const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+    const provider = new ethers.JsonRpcProvider(RPC_URL);
     
     // USDC contract instance
     const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, provider);
     
     // Check USDC balance
     const balance = await usdcContract.balanceOf(WALLET_ADDRESS);
-    const balanceFormatted = ethers.utils.formatUnits(balance, 6);
+    const balanceFormatted = ethers.formatUnits(balance, 6);
     
     console.log(`Wallet: ${WALLET_ADDRESS}`);
     console.log(`USDC Balance: ${balanceFormatted} USDC`);
     
     // Also check AVAX balance
     const avaxBalance = await provider.getBalance(WALLET_ADDRESS);
-    const avaxBalanceFormatted = ethers.utils.formatEther(avaxBalance);
+    const avaxBalanceFormatted = ethers.formatEther(avaxBalance);
     
     console.log(`AVAX Balance: ${avaxBalanceFormatted} AVAX`);
     
