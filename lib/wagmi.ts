@@ -1,5 +1,4 @@
 import { http, createConfig } from 'wagmi'
-import { mainnet } from 'wagmi/chains';
 import { avalancheFuji } from '@/lib/constants';
 import { injected, walletConnect } from 'wagmi/connectors'
 
@@ -31,10 +30,9 @@ export function getWagmiConfig() {
   }
 
   return createConfig({
-    chains: [mainnet, avalancheFuji],
+    chains: [avalancheFuji],
     connectors,
     transports: {
-      [mainnet.id]: http(),
       [avalancheFuji.id]: http('https://api.avax-test.network/ext/bc/C/rpc'),
     },
     ssr: true,

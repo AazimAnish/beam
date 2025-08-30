@@ -19,7 +19,7 @@ type SendStep = 'input' | 'link_generated';
 export function SendCard() {
   const { ready, authenticated, user, login } = usePrivy();
   const { chain } = useAccount();
-  const { switchChain } = useSwitchChain();
+  const { switchChain, isPending: isSwitchingChain } = useSwitchChain();
   const { data: hash, writeContract, isPending, isSuccess, error: transactionError } = useWriteContract();
 
   const [email, setEmail] = useState("");
@@ -272,6 +272,39 @@ export function SendCard() {
           Simple, secure, and instant money transfers
         </p>
       </div>
+
+      {/* Network Status */}
+      {chain && (
+        <div className="text-center space-y-3">
+          <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+            chain.id === avalancheFuji.id 
+              ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+              : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+          }`}>
+            {chain.id === avalancheFuji.id ? (
+              <>
+                <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                Connected to Avalanche Fuji Testnet
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
+                Wrong Network - Please switch to Fuji Testnet
+              </>
+            )}
+          </div>
+          
+          {chain.id !== avalancheFuji.id && (
+            <Button
+              onClick={() => switchChain({ chainId: avalancheFuji.id })}
+              className="button-primary h-10 text-sm font-bold"
+              disabled={isSwitchingChain}
+            >
+              {isSwitchingChain ? 'Switching...' : 'Switch to Fuji Testnet'}
+            </Button>
+          )}
+        </div>
+      )}
       
       <div className="space-y-6">
         {/* Amount Display */}
