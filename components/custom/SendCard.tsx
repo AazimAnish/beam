@@ -111,7 +111,7 @@ export function SendCard() {
       })
       .catch((err) => {
         toast.dismiss();
-        console.error(err);
+        // Silently handle error
         toast.error("An error occurred while notifying the recipient.");
       })
       .finally(() => setIsNotifying(false));
@@ -120,7 +120,7 @@ export function SendCard() {
 
   useEffect(() => {
     if (transactionError) {
-      console.error("Transaction Error:", transactionError);
+      // Silently handle transaction error
       toast.error(transactionError.message);
     }
   }, [transactionError]);

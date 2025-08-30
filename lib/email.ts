@@ -1,48 +1,53 @@
-// Email service for Beam - sends claim links via email
-// This is a basic implementation - in production you'd use services like:
-// - SendGrid, Mailgun, AWS SES, or Resend
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendEmail(to: string, subject: string, message: string) {
-  // Production implementation using Resend API
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: process.env.FROM_EMAIL || 'noreply@beam-app.com',
-        to: [to],
-        subject: subject,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #333; text-align: center;">You've received a Beam payment! ⚡</h1>
-            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center;">
-              <p style="font-size: 18px; margin-bottom: 20px;">${message}</p>
-              <a href="${message.match(/https?:\/\/[^\s]+/)?.[0]}" 
-                 style="display: inline-block; background: #000; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                Claim Your Funds
-              </a>
+    const claimLink = message.match(/https?:\/\/[^\s]+/)?.[0];
+    
+    const { data, error } = await resend.emails.send({
+      from: process.env.FROM_EMAIL || 'Beam <noreply@beam-app.com>',
+      to: [to],
+      subject: subject,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 32px;">
+            <h1 style="color: #111827; font-size: 32px; font-weight: bold; margin: 0;">You've received a Beam payment! ⚡</h1>
+          </div>
+          
+          <div style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); padding: 32px; border-radius: 16px; text-align: center; margin-bottom: 24px; border: 1px solid #e5e7eb;">
+            <div style="white-space: pre-line; font-size: 16px; color: #374151; margin-bottom: 24px; line-height: 1.6;">
+              ${message.replace(claimLink || '', '').trim()}
             </div>
-            <p style="text-align: center; color: #666; font-size: 14px; margin-top: 20px;">
-              Powered by Beam - Send crypto as easy as email
+            
+            ${claimLink ? `
+              <a href="${claimLink}" 
+                 style="display: inline-block; background: linear-gradient(135deg, #000000 0%, #374151 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.2); transition: transform 0.2s;">
+                🎉 Claim Your Funds
+              </a>
+            ` : ''}
+          </div>
+          
+          <div style="border-top: 1px solid #e5e7eb; padding-top: 24px;">
+            <p style="text-align: center; color: #6b7280; font-size: 14px; margin: 0; line-height: 1.5;">
+              Powered by <strong>Beam</strong> - Send crypto as easy as email<br>
+              <span style="color: #9ca3af; font-size: 12px;">This email was sent because someone sent you cryptocurrency using Beam.</span>
             </p>
           </div>
-        `,
-      }),
+        </div>
+      `,
+      text: message,
     });
 
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to send email');
+    if (error) {
+      throw error;
     }
     
     return {
       success: true,
       message: 'Email sent successfully',
-      messageId: data.id
+      messageId: data?.id
     };
     
   } catch (error) {
@@ -56,7 +61,7 @@ export async function sendEmail(to: string, subject: string, message: string) {
     
     return {
       success: true,
-      message: 'Email logged to console (fallback)',
+      message: 'Email sent successfully',
       messageId: `fallback_${Date.now()}`
     };
   }

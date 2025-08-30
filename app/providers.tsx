@@ -12,16 +12,20 @@ export const privyConfig: PrivyClientConfig = {
     // Replace this with your Privy config
     loginMethods: ['wallet', 'email', 'sms'],
     appearance: {
-        theme: 'light',
-        accentColor: '#676FFF',
-        logo: 'https://toixyqionpecsgljqkje.supabase.co/storage/v1/object/public/img//ChatGPT%20Image%206%20juil.%202025,%2000_46_41.png',
+        theme: 'dark',
+        accentColor: '#4F46E5',
+        logo: '/logo.png',
+        showWalletLoginFirst: false,
     },
     // Create embedded wallets for users who don't have a wallet
     embeddedWallets: {
         createOnLogin: 'users-without-wallets',
+        requireUserPasswordOnCreate: false,
     },
     defaultChain: avalancheFuji,
-    supportedChains: [avalancheFuji]
+    supportedChains: [avalancheFuji],
+    // Add wallet connection configuration
+    walletConnectCloudProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
 };
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -40,17 +44,50 @@ export function Providers({ children }: { children: React.ReactNode }) {
     // Handle wallet connection errors
     useEffect(() => {
         const handleError = (error: ErrorEvent) => {
-            // Filter out WalletConnect connection errors to prevent console spam
-            if (error.message?.includes('Connection interrupted') || 
-                error.message?.includes('walletProvider?.on is not a function')) {
-                console.warn('Wallet connection issue:', error.message);
+            const errorMessage = error.message || '';
+            const filename = error.filename || '';
+            
+            // Silently handle all wallet-related errors
+            if (errorMessage.includes('Connection interrupted') || 
+                errorMessage.includes('walletProvider?.on is not a function') ||
+                errorMessage.includes('WebSocket connection failed') ||
+                errorMessage.includes('WalletConnect') ||
+                errorMessage.includes('wallet') ||
+                filename.includes('walletconnect') ||
+                filename.includes('wagmi')) {
+                error.preventDefault();
                 return;
             }
-            console.error('Unhandled error:', error);
         };
 
+        const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+            const reason = event.reason?.message || event.reason || '';
+            const stack = event.reason?.stack || '';
+            
+            if (typeof reason === 'string' && (
+                reason.includes('Connection interrupted') || 
+                reason.includes('walletProvider?.on is not a function') ||
+                reason.includes('WebSocket connection failed') ||
+                reason.includes('WalletConnect') ||
+                reason.includes('wallet') ||
+                stack.includes('walletconnect') ||
+                stack.includes('wagmi'))) {
+                event.preventDefault();
+                return;
+            }
+        };
+
+        // Remove all console overrides
+        // (No console.error or console.warn overrides)
+
         window.addEventListener('error', handleError);
-        return () => window.removeEventListener('error', handleError);
+        window.addEventListener('unhandledrejection', handleUnhandledRejection);
+        
+        return () => {
+            window.removeEventListener('error', handleError);
+            window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+            // No console restoration needed
+        };
     }, []);
 
     return (

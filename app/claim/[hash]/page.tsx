@@ -8,7 +8,6 @@ import { Toaster, toast } from 'sonner';
 import { ArrowRight, CheckCircle2, Gift, ArrowLeft, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import Confetti from 'react-confetti';
-import { VirtualCard } from '@/components/custom/VirtualCard';
 import GradientBlinds from '@/components/GradientBlinds';
 
 
@@ -186,10 +185,6 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
     </div>
   );
 
-  const renderCardStep = () => (
-      <VirtualCard amount={transfer?.amount || 0} />
-  )
-
   const renderContent = () => {
     if (loading) return <div className="glass-card max-w-md mx-auto p-6 text-center font-sora text-white">Loading transfer details...</div>;
     if (error) return <div className="glass-card max-w-md mx-auto p-6 text-center text-red-400 font-sora">{error}</div>;
@@ -197,7 +192,6 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
     switch(step) {
       case 'initial': return renderInitialStep();
       case 'claimed': return renderClaimedStep();
-      case 'card_generated': return renderCardStep();
       default: return null;
     }
   };
