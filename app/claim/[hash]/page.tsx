@@ -137,13 +137,14 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
         </div>
         
         <div>
-          <h1 className="text-3xl font-bold font-sora text-white mb-2">You&apos;ve Received a Payment!</h1>
-          <p className="font-ibm-plex-mono text-white/80 text-sm">From: {transfer?.recipient_email}</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-sora text-white mb-2">You&apos;ve Received a Payment!</h1>
+          <p className="font-ibm-plex-mono text-white/80 text-xs sm:text-sm">From: {transfer?.recipient_email}</p>
         </div>
 
-        <div className="text-center py-6">
-          <span className="text-7xl font-bold text-white font-ibm-plex-mono">${transfer?.amount}</span>
-          <p className="text-2xl font-bold text-gray-400 font-sora mt-2">USDC</p>
+        <div className="text-center py-4 sm:py-6">
+          <span className="text-5xl sm:text-6xl md:text-7xl font-bold text-white font-ibm-plex-mono">${transfer?.amount}</span>
+          <p className="text-xl font-bold text-gray-400 font-sora mt-2">USDC</p>
+          <p className="text-white/60 text-sm mt-2">Ready to claim instantly</p>
         </div>
 
         <div className="space-y-4">
@@ -178,10 +179,10 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
         </div>
       </div>
       
-      <div>
-        <h1 className="text-3xl font-bold font-sora text-green-400 mb-2">Funds Claimed!</h1>
-        <p className="font-ibm-plex-mono text-white/80">These funds have been successfully transferred to your wallet.</p>
-      </div>
+              <div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-sora text-green-400 mb-2">Funds Claimed Successfully!</h1>
+          <p className="font-ibm-plex-mono text-white/80 text-sm sm:text-base">Your funds have been securely transferred to your wallet and are now available for use.</p>
+        </div>
     </div>
   );
 

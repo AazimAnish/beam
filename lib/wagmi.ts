@@ -25,7 +25,7 @@ export function getWagmiConfig() {
         },
         showQrModal: false,
       }));
-    } catch (error) {
+    } catch {
       // Silently handle connector initialization errors
     }
   }

@@ -52,7 +52,7 @@ export default function ClaimLandingPage() {
                         Claim Your <span className="text-gray-300">Funds</span>
                     </h1>
                     <p className="font-ibm-plex-mono text-white text-base sm:text-lg md:text-xl max-w-md sm:max-w-lg mx-auto">
-                        Enter your claim code to receive your payment
+                        Secure and instant access to your crypto payment. Enter your claim code to receive your funds.
                     </p>
                 </div>
                 
@@ -67,7 +67,7 @@ export default function ClaimLandingPage() {
                         <div>
                             <h2 className="text-xl sm:text-2xl font-bold font-sora text-white mb-2">Claim Your Funds</h2>
                             <p className="font-ibm-plex-mono text-white/70 text-xs sm:text-sm">
-                                Enter the code you received to claim your payment.
+                                Enter the secure code you received to claim your payment instantly.
                             </p>
                         </div>
                         

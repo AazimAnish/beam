@@ -42,7 +42,7 @@ export default function SendPage() {
                         Send <span className="text-gray-300">Crypto</span>
                     </h1>
                     <p className="font-ibm-plex-mono text-white text-base sm:text-lg md:text-xl max-w-md sm:max-w-lg mx-auto">
-                        Send USDC to anyone with just their email address
+                        Transform how you send money. USDC to anyone, anywhere, with just an email address.
                     </p>
                 </div>
                 

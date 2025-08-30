@@ -375,7 +375,7 @@ void main() {
       if (!paused && programRef.current && meshRef.current) {
         try {
           renderer.render({ scene: meshRef.current });
-        } catch (e) {
+        } catch {
           // Silently handle error
         }
       }

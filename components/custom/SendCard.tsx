@@ -109,7 +109,7 @@ export function SendCard() {
           toast.error(data.message || "Failed to create transfer record.");
         }
       })
-      .catch((err) => {
+      .catch(() => {
         toast.dismiss();
         // Silently handle error
         toast.error("An error occurred while notifying the recipient.");
@@ -135,11 +135,21 @@ export function SendCard() {
 
   if (!authenticated || !user?.wallet) {
     return (
-      <div className="glass-card max-w-md mx-auto text-center space-y-4">
-        <h2 className="font-sora text-2xl font-bold text-white">Connect Wallet</h2>
-        <p className="font-ibm-plex-mono text-white/70">
-          Please connect your wallet to send money using the button in the top-left corner.
-        </p>
+      <div className="glass-card max-w-md mx-auto text-center space-y-6">
+        <div className="w-20 h-20 mx-auto rounded-3xl flex items-center justify-center bg-white/10 border border-white/20 backdrop-blur-sm">
+          <svg className="w-10 h-10 text-golden-solid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <div className="space-y-3">
+          <h2 className="font-sora text-2xl font-bold text-white">Connect Your Wallet</h2>
+          <p className="font-ibm-plex-mono text-white/70 text-sm leading-relaxed">
+            To send money securely, please connect your wallet using the button in the top-left corner.
+          </p>
+          <p className="font-ibm-plex-mono text-white/50 text-xs">
+            Your wallet connection ensures safe and secure transactions.
+          </p>
+        </div>
       </div>
     );
   }
@@ -150,18 +160,23 @@ export function SendCard() {
   };
 
   if (step === 'link_generated') {
-    const shareMessage = `I've sent you $${amount} on Beam! Claim it here: ${claimLink}`;
+    const shareMessage = `I've sent you $${amount} USDC on Beam! Claim it here: ${claimLink}`;
     
     return (
         <div className="glass-card max-w-lg mx-auto space-y-6">
             <div className="text-center space-y-3">
+                <div className="w-16 h-16 mx-auto rounded-3xl flex items-center justify-center bg-green-500/20 border border-green-500/30 backdrop-blur-sm">
+                  <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
                 <h2 className="font-sora text-2xl font-bold text-white">
-                  {sharingMethod === 'email' ? 'Email Sent!' : 'Share this Link'}
+                  {sharingMethod === 'email' ? 'Email Sent Successfully!' : 'Share Your Payment Link'}
                 </h2>
-                <p className="font-ibm-plex-mono text-white/70">
+                <p className="font-ibm-plex-mono text-white/70 text-sm">
                     {sharingMethod === 'email' 
-                      ? `We sent ${email} a secure link to claim $${amount}.`
-                      : `Your recipient can claim $${amount} using the link below.`
+                      ? `We've sent ${email} a secure link to claim $${amount} USDC.`
+                      : `Your recipient can claim $${amount} USDC using the secure link below.`
                     }
                 </p>
             </div>
@@ -244,12 +259,16 @@ export function SendCard() {
     <div className="glass-card max-w-lg mx-auto space-y-6">
       <div className="text-center">
         <h2 className="font-sora text-2xl font-bold text-white mb-2">Send with Beam</h2>
+        <p className="font-ibm-plex-mono text-white/60 text-sm">
+          Simple, secure, and instant money transfers
+        </p>
       </div>
       
       <div className="space-y-6">
         {/* Amount Display */}
         <div className="text-center py-4">
             <span className="text-6xl font-bold text-white font-ibm-plex-mono">${amount}</span>
+            <p className="text-white/50 text-sm mt-2">USDC</p>
         </div>
 
         {/* Number Pad */}
@@ -275,12 +294,12 @@ export function SendCard() {
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label className="font-sora text-white font-semibold">To</Label>
+            <Label className="font-sora text-white font-semibold">Recipient Email</Label>
             <div className="input-field flex items-center space-x-3">
               <Mail className="h-4 w-4 text-white/60" />
               <Input 
                   type="email"
-                  placeholder="recipient@example.com"
+                  placeholder="Enter recipient's email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 font-ibm-plex-mono text-white placeholder:text-white/40 flex-1"
@@ -289,7 +308,7 @@ export function SendCard() {
           </div>
           
           <div className="space-y-2">
-            <Label className="font-sora text-white font-semibold">Share Via</Label>
+            <Label className="font-sora text-white font-semibold">Share Method</Label>
             <SharingMethodSelect 
               value={sharingMethod}
               onChange={setSharingMethod}
@@ -303,7 +322,7 @@ export function SendCard() {
           onClick={handleSubmit}
           disabled={isPending || isNotifying || !email.trim() || parseFloat(amount) <= 0}
         >
-          {isPending ? "Sending..." : (isNotifying ? "Notifying..." : `Confirm Payment`)}
+          {isPending ? "Processing..." : (isNotifying ? "Sending..." : `Send $${amount} USDC`)}
         </Button>
       </div>
     </div>
