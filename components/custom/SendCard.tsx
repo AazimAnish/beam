@@ -17,7 +17,7 @@ import { ArrowLeft, Copy, Mail } from "lucide-react";
 type SendStep = 'input' | 'link_generated';
 
 export function SendCard() {
-  const { ready, authenticated, user } = usePrivy();
+  const { ready, authenticated, user, login } = usePrivy();
   const { chain } = useAccount();
   const { switchChain } = useSwitchChain();
   const { data: hash, writeContract, isPending, isSuccess, error: transactionError } = useWriteContract();
@@ -141,11 +141,20 @@ export function SendCard() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <h2 className="font-sora text-2xl font-bold text-white">Connect Your Wallet</h2>
           <p className="font-ibm-plex-mono text-white/70 text-sm leading-relaxed">
-            To send money securely, please connect your wallet using the button in the top-left corner.
+            To send money securely, please connect your wallet below.
           </p>
+          <Button
+            onClick={login}
+            className="button-connect w-full h-12 text-base font-bold"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Connect Wallet
+          </Button>
           <p className="font-ibm-plex-mono text-white/50 text-xs">
             Your wallet connection ensures safe and secure transactions.
           </p>
