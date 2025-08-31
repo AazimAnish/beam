@@ -25,7 +25,7 @@ interface ClaimPageParams {
 
 export default function ClaimPage({ params }: { params: Promise<ClaimPageParams> }) {
   const { hash } = use(params);
-  const { user } = usePrivy();
+  const { ready, authenticated, user, login } = usePrivy();
   const [transfer, setTransfer] = useState<Transfer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -95,6 +95,11 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
   }
 
   const handleClaim = async () => {
+    if (!authenticated || !user?.wallet?.address) {
+      toast.error('Please connect your wallet first to claim funds.');
+      return;
+    }
+
     setIsProcessing(true);
     toast.loading('Verifying and claiming your funds...');
 
@@ -104,7 +109,7 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           claimHash: hash,
-          recipientAddress: user?.wallet?.address,
+          recipientAddress: user.wallet.address,
         }),
       });
 
@@ -127,48 +132,107 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
     }
   };
 
-  const renderInitialStep = () => (
-    <div className="glass-card max-w-md mx-auto space-y-8">
-      <div className="text-center space-y-6">
-        <div className="flex justify-center">
-          <div className="w-20 h-20 bg-white/10 border border-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center">
-            <Gift className="w-10 h-10 text-white" />
+  const renderInitialStep = () => {
+    if (!ready) {
+      return (
+        <div className="glass-card max-w-md mx-auto text-center">
+          <p className="font-sora text-white">Loading Wallet Status...</p>
+        </div>
+      );
+    }
+
+    if (!authenticated || !user?.wallet) {
+      return (
+        <div className="glass-card max-w-md mx-auto space-y-8">
+          <div className="text-center space-y-6">
+            <div className="flex justify-center">
+              <div className="w-20 h-20 bg-white/10 border border-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center">
+                <Gift className="w-10 h-10 text-white" />
+              </div>
+            </div>
+            
+            <div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-sora text-white mb-2">You&apos;ve Received a Payment!</h1>
+              <p className="font-ibm-plex-mono text-white/80 text-xs sm:text-sm">From: {transfer?.recipient_email}</p>
+            </div>
+
+            <div className="text-center py-4 sm:py-6">
+              <span className="text-5xl sm:text-6xl md:text-7xl font-bold text-white font-ibm-plex-mono">${transfer?.amount}</span>
+              <p className="text-xl font-bold text-gray-400 font-sora mt-2">USDC</p>
+              <p className="text-white/60 text-sm mt-2">Ready to claim instantly</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-3xl flex items-center justify-center bg-white/10 border border-white/20 backdrop-blur-sm">
+                <svg className="w-8 h-8 text-golden-solid" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h2 className="font-sora text-xl font-bold text-white">Connect Your Wallet</h2>
+              <p className="font-ibm-plex-mono text-white/70 text-sm leading-relaxed">
+                To claim your funds securely, please connect your wallet below.
+              </p>
+              <Button
+                onClick={login}
+                className="button-connect w-full h-14 text-lg font-bold"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Connect Wallet
+              </Button>
+              <p className="font-ibm-plex-mono text-white/50 text-xs">
+                Your wallet connection ensures safe and secure transactions.
+              </p>
+            </div>
           </div>
         </div>
-        
-        <div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-sora text-white mb-2">You&apos;ve Received a Payment!</h1>
-          <p className="font-ibm-plex-mono text-white/80 text-xs sm:text-sm">From: {transfer?.recipient_email}</p>
-        </div>
+      );
+    }
 
-        <div className="text-center py-4 sm:py-6">
-          <span className="text-5xl sm:text-6xl md:text-7xl font-bold text-white font-ibm-plex-mono">${transfer?.amount}</span>
-          <p className="text-xl font-bold text-gray-400 font-sora mt-2">USDC</p>
-          <p className="text-white/60 text-sm mt-2">Ready to claim instantly</p>
-        </div>
-
-        <div className="space-y-4">
-          <Button 
-            onClick={handleClaim} 
-            disabled={isProcessing}
-            className="button-primary w-full h-14 text-lg font-bold"
-          >
-            {isProcessing ? 'Processing...' : `Claim to Wallet`}
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+    return (
+      <div className="glass-card max-w-md mx-auto space-y-8">
+        <div className="text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="w-20 h-20 bg-white/10 border border-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center">
+              <Gift className="w-10 h-10 text-white" />
+            </div>
+          </div>
           
-          <Button 
-            onClick={handleGenerateCard} 
-            disabled={isProcessing}
-            className="button-secondary w-full h-14 text-lg font-bold"
-          >
-            <CreditCard className="mr-2 h-5 w-5" />
-            Generate a Card
-          </Button>
+          <div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-sora text-white mb-2">You&apos;ve Received a Payment!</h1>
+            <p className="font-ibm-plex-mono text-white/80 text-xs sm:text-sm">From: {transfer?.recipient_email}</p>
+          </div>
+
+          <div className="text-center py-4 sm:py-6">
+            <span className="text-5xl sm:text-6xl md:text-7xl font-bold text-white font-ibm-plex-mono">${transfer?.amount}</span>
+            <p className="text-xl font-bold text-gray-400 font-sora mt-2">USDC</p>
+            <p className="text-white/60 text-sm mt-2">Ready to claim instantly</p>
+          </div>
+
+          <div className="space-y-4">
+            <Button 
+              onClick={handleClaim} 
+              disabled={isProcessing}
+              className="button-primary w-full h-14 text-lg font-bold"
+            >
+              {isProcessing ? 'Processing...' : `Claim to Wallet`}
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            
+            <Button 
+              onClick={handleGenerateCard} 
+              disabled={isProcessing}
+              className="button-secondary w-full h-14 text-lg font-bold"
+            >
+              <CreditCard className="mr-2 h-5 w-5" />
+              Generate a Card
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
   
 
   const renderClaimedStep = () => (
