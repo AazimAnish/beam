@@ -5,7 +5,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Toaster, toast } from 'sonner';
-import { ArrowRight, CheckCircle2, Gift, ArrowLeft, CreditCard } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Gift, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import Confetti from 'react-confetti';
 import GradientBlinds from '@/components/GradientBlinds';
@@ -37,7 +37,7 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
   useEffect(() => {
     async function fetchTransfer() {
       if (!hash) return;
-      
+
       try {
         const { data, error } = await supabase
           .from('transfers')
@@ -63,36 +63,6 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
 
     fetchTransfer();
   }, [hash, supabase]);
-  
-
-  const handleGenerateCard = async () => {
-    setIsProcessing(true);
-    toast.loading('Generating your card...');
-
-    try {
-      const response = await fetch('/api/claim-by-card', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ claimHash: hash }),
-      });
-      const result = await response.json();
-      toast.dismiss();
-
-      if (result.success) {
-        toast.success("Card generated!");
-        setStep('card_generated');
-        setShowConfetti(true);
-      } else {
-        throw new Error(result.message || 'Failed to generate card.');
-      }
-    } catch (e: unknown) {
-      toast.dismiss();
-      const errorMessage = e instanceof Error ? e.message : 'Could not generate card.';
-      toast.error(errorMessage);
-    } finally {
-      setIsProcessing(false);
-    }
-  }
 
   const handleClaim = async () => {
     if (!authenticated || !user?.wallet?.address) {
@@ -117,7 +87,7 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
       toast.dismiss();
 
       if (result.success) {
-        toast.success(`Funds sent! Tx: ${result.txHash.slice(0,10)}...`);
+        toast.success(`Funds sent! Tx: ${result.txHash.slice(0, 10)}...`);
         setStep('claimed');
         setShowConfetti(true); // Trigger confetti on success
       } else {
@@ -150,7 +120,7 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
                 <Gift className="w-10 h-10 text-white" />
               </div>
             </div>
-            
+
             <div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-sora text-white mb-2">You&apos;ve Received a Payment!</h1>
               <p className="font-ibm-plex-mono text-white/80 text-xs sm:text-sm">From: {transfer?.recipient_email}</p>
@@ -198,7 +168,7 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
               <Gift className="w-10 h-10 text-white" />
             </div>
           </div>
-          
+
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-sora text-white mb-2">You&apos;ve Received a Payment!</h1>
             <p className="font-ibm-plex-mono text-white/80 text-xs sm:text-sm">From: {transfer?.recipient_email}</p>
@@ -211,29 +181,20 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
           </div>
 
           <div className="space-y-4">
-            <Button 
-              onClick={handleClaim} 
+            <Button
+              onClick={handleClaim}
               disabled={isProcessing}
               className="button-primary w-full h-14 text-lg font-bold"
             >
               {isProcessing ? 'Processing...' : `Claim to Wallet`}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            
-            <Button 
-              onClick={handleGenerateCard} 
-              disabled={isProcessing}
-              className="button-secondary w-full h-14 text-lg font-bold"
-            >
-              <CreditCard className="mr-2 h-5 w-5" />
-              Generate a Card
-            </Button>
           </div>
         </div>
       </div>
     );
   };
-  
+
 
   const renderClaimedStep = () => (
     <div className="glass-card max-w-md mx-auto text-center space-y-6">
@@ -242,19 +203,19 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
           <CheckCircle2 className="w-10 h-10 text-green-400" />
         </div>
       </div>
-      
-              <div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-sora text-green-400 mb-2">Funds Claimed Successfully!</h1>
-          <p className="font-ibm-plex-mono text-white/80 text-sm sm:text-base">Your funds have been securely transferred to your wallet and are now available for use.</p>
-        </div>
+
+      <div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-sora text-green-400 mb-2">Funds Claimed Successfully!</h1>
+        <p className="font-ibm-plex-mono text-white/80 text-sm sm:text-base">Your funds have been securely transferred to your wallet and are now available for use.</p>
+      </div>
     </div>
   );
 
   const renderContent = () => {
     if (loading) return <div className="glass-card max-w-sm sm:max-w-md mx-auto p-4 sm:p-6 text-center font-sora text-white text-sm sm:text-base">Loading transfer details...</div>;
     if (error) return <div className="glass-card max-w-sm sm:max-w-md mx-auto p-4 sm:p-6 text-center text-red-400 font-sora text-sm sm:text-base">{error}</div>;
-    
-    switch(step) {
+
+    switch (step) {
       case 'initial': return renderInitialStep();
       case 'claimed': return renderClaimedStep();
       default: return null;
@@ -282,7 +243,7 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
       </div>
 
       {showConfetti && <Confetti recycle={false} />}
-      
+
       {/* Back Button */}
       <Link href="/" passHref>
         <Button className="fixed top-4 sm:top-6 left-4 sm:left-6 z-20 glass-card h-10 sm:h-12 px-3 sm:px-4 bg-white/5 border border-white/10 text-white hover:bg-white/10 backdrop-blur-sm transition-all text-sm sm:text-base">
@@ -290,9 +251,9 @@ export default function ClaimPage({ params }: { params: Promise<ClaimPageParams>
           Back
         </Button>
       </Link>
-      
+
       <Toaster richColors position="top-center" />
-      
+
       <main className="relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 md:px-8 lg:px-12 py-8 sm:py-12 md:py-16 lg:py-20">
         {renderContent()}
       </main>
